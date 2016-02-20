@@ -2,12 +2,7 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/Image.h>
 // PCL specific includes
-#include <pcl_conversions/pcl_conversions.h>
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
-#include <pcl/filters/voxel_grid.h>
-#include <pcl/io/pcd_io.h>
-//openCV includes
+
 #include <image_transport/image_transport.h>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/core/core.hpp>
@@ -40,7 +35,6 @@ void HSV_tracker::image_callback(const sensor_msgs::ImageConstPtr& img_ptr)
 	cv_ptr = cv_bridge::toCvCopy(img_ptr);
 	cv_image=cv_ptr->image;
   cv::Mat imgHSV;
-
   cv::cvtColor(cv_image, imgHSV, cv::COLOR_BGR2HSV); //Convert the captured frame from BGR to HSV
  
   cv::Mat imgThresholded;
@@ -62,12 +56,55 @@ void HSV_tracker::image_callback(const sensor_msgs::ImageConstPtr& img_ptr)
    //morphological closing (fill small holes in the foreground)
   cv::dilate( imgThresholded, imgThresholded, cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(20, 20)) ); 
   cv::erode(imgThresholded, imgThresholded, cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(20, 20)) );
+   
+   //calculating image moments
+   cv::Moments oMoments = cv::moments(imgThresholded);
+   double dM01 = oMoments.m01;
+   double dM10 = oMoments.m10;
+   double dArea = oMoments.m00;
 
-  
-  cv::imshow("WINDOW",imgThresholded);
+   if (dArea > 10000)
+  {
+   //calculate the position of the ball
+   int posX = dM10 / dArea;
+   int posY = dM01 / dArea;  
+      
+   ROS_INFO_STREAM("The centroid of object:"<<posX<<","<<posY);
+ }
+
+  //median filtering
+  cv::medianBlur(imgThresholded, imgThresholded,5);
+
+    cv::imshow("WINDOW",imgThresholded);
+
+  //contour detection
+  int largest_area=0;
+  int largest_contour_index=0;
+  std::vector<std::vector<cv::Point> > contours;
+  std::vector<cv::Vec4i> hierarchy;
+  cv::Mat dst(cv_image.rows,cv_image.cols,CV_8UC1,cv::Scalar::all(0));
+  //cv::Rect bounding_rect;
+  cv::findContours(imgThresholded,contours,hierarchy,CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
+
+  for (int i = 0; i < contours.size(); ++i)
+  {
+    double a=contourArea(contours[i],false);
+    if(a>largest_area)
+    {
+      largest_area=a;
+      largest_contour_index=i;
+
+    }
+  }
+  //bounding_rect=boundingRect(contours[largest_contour_index]);
+  cv::Scalar color(255,255,255);
+  cv::drawContours(dst,contours,largest_contour_index,color,CV_FILLED,8,hierarchy);
+  //cv::rectangle(cv_image, bounding_rect,  cv::Scalar(0,255,0),1, 8,0);
+   // cv::imshow("WINDOW_1",cv_image);
+
   cv::waitKey(5);
 
-}
+  }
 
 
 int main(int argc, char** argv)

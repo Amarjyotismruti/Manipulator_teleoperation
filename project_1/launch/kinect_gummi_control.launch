@@ -1,0 +1,9 @@
+<launch>
+
+<include file="$(find freenect_launch)/launch/freenect.launch"/>
+<node pkg="project_1" type="Tracker_object2" name="Object_track"/>
+<node pkg="rviz" type="rviz" name="rviz"/>
+<node pkg="project_1" type="path_viz" name="path_viz"/>
+<node pkg="project_1" type="kinect_twist" name="kinect_twist"/>
+
+</launch>

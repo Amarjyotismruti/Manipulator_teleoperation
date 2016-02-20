@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   pcl_conversions
   cv_bridge
+  message_generation
  
 )
 
@@ -60,11 +61,11 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+ add_message_files(
+   FILES
+   
+   vec_xyz.msg
+ )
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -81,10 +82,10 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+ generate_messages(
+   DEPENDENCIES
+   std_msgs
+ )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -120,6 +121,7 @@ catkin_package(
 #  LIBRARIES project_1
 #  CATKIN_DEPENDS rospy std_msgs
 #  DEPENDS system_lib
+CATKIN_DEPENDS message_runtime
 )
 
 ###########
@@ -218,8 +220,23 @@ include_directories(
 add_executable(Tracker_object2 src/Tracker_object2.cpp)
 target_link_libraries(Tracker_object2 ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
 
-add_executable(Tracker_object src/Tracker_object.cpp)
-target_link_libraries(Tracker_object ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
+add_executable(point_proc src/point_proc.cpp)
+target_link_libraries(point_proc ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
 
 add_executable(test_image src/test_image.cpp)
 target_link_libraries(test_image ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
+
+add_executable(Tracker_object_2 src/Tracker_object_2.cpp)
+target_link_libraries(Tracker_object_2 ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
+
+add_executable(listener src/Listener.cpp)
+target_link_libraries(listener ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
+
+add_executable(path_viz src/path_viz.cpp)
+target_link_libraries(path_viz ${catkin_LIBRARIES})
+
+add_executable(kinect_twist src/kinect_twist.cpp)
+target_link_libraries(kinect_twist ${catkin_LIBRARIES})
+
+#add_executable(pcl_tutorial src/pcl_tutorial.cpp)
+#target_link_libraries(pcl_tutorial ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBRARIES})
